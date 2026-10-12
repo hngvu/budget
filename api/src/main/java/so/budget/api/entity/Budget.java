@@ -2,8 +2,11 @@ package so.budget.api.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -15,27 +18,36 @@ import java.util.UUID;
 @Builder
 @Entity
 @Table(name = "budgets")
-public class Budget extends BaseEntity {
+@EntityListeners(AuditingEntityListener.class)
+public class Budget {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "first_month")
-    private LocalDate firstMonth;
+    @Column(name = "currency_code", nullable = false, length = 3)
+    @Builder.Default
+    private String currencyCode = "VND";
 
-    @Column(name = "last_month")
-    private LocalDate lastMonth;
+    @Column(name = "decimal_digits", nullable = false)
+    @Builder.Default
+    private Short decimalDigits = 0;
 
-    @Column(name = "currency_iso_code", length = 10)
-    private String currencyIsoCode;
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
 
-    @Column(name = "currency_symbol", length = 10)
-    private String currencySymbol;
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
 
     @OneToMany(mappedBy = "budget", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -48,8 +60,4 @@ public class Budget extends BaseEntity {
     @OneToMany(mappedBy = "budget", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Payee> payees = new ArrayList<>();
-
-    @OneToMany(mappedBy = "budget", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<MonthBudget> months = new ArrayList<>();
 }

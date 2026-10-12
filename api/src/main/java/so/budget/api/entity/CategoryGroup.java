@@ -2,7 +2,10 @@ package so.budget.api.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -13,8 +16,11 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "category_groups")
-public class CategoryGroup extends BaseEntity {
+@Table(name = "category_groups", uniqueConstraints = {
+    @UniqueConstraint(name = "uq_category_groups_budget_id", columnNames = {"budget_id", "id"})
+})
+@EntityListeners(AuditingEntityListener.class)
+public class CategoryGroup {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -29,7 +35,16 @@ public class CategoryGroup extends BaseEntity {
     private String name;
 
     @Column(name = "hidden", nullable = false)
-    private boolean hidden;
+    @Builder.Default
+    private boolean hidden = false;
+
+    @Column(name = "sort_order", nullable = false)
+    @Builder.Default
+    private Integer sortOrder = 0;
+
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
 
     @OneToMany(mappedBy = "categoryGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

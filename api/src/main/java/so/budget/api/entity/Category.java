@@ -12,13 +12,19 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "categories")
+@Table(name = "categories", uniqueConstraints = {
+    @UniqueConstraint(name = "uq_categories_budget_id", columnNames = {"budget_id", "id"})
+})
 public class Category extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "budget_id", nullable = false)
+    private Budget budget;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_group_id", nullable = false)
@@ -28,35 +34,25 @@ public class Category extends BaseEntity {
     private String name;
 
     @Column(name = "hidden", nullable = false)
-    private boolean hidden;
+    @Builder.Default
+    private boolean hidden = false;
 
     @Column(name = "note")
     private String note;
 
-    /**
-     * Budgeted amount in the current month in milliunits
-     */
-    @Column(name = "budgeted", nullable = false)
+    @Column(name = "sort_order", nullable = false)
     @Builder.Default
-    private Long budgeted = 0L;
+    private Integer sortOrder = 0;
 
     /**
-     * Activity/spending amount in the current month in milliunits
+     * System marker: 'INFLOW_READY_TO_ASSIGN' marks the hidden category that receives income.
      */
-    @Column(name = "activity", nullable = false)
-    @Builder.Default
-    private Long activity = 0L;
+    @Column(name = "system_kind", length = 32)
+    private String systemKind;
 
-    /**
-     * Available balance in milliunits
-     */
-    @Column(name = "balance", nullable = false)
-    @Builder.Default
-    private Long balance = 0L;
-
-    // --- YNAB Targets 2.0 (Goals) ---
+    // --- YNAB Targets 2.0 ---
     @Enumerated(EnumType.STRING)
-    @Column(name = "goal_type", length = 32)
+    @Column(name = "goal_type", length = 16)
     private GoalType goalType;
 
     /**
@@ -65,53 +61,33 @@ public class Category extends BaseEntity {
     @Column(name = "goal_target")
     private Long goalTarget;
 
-    /**
-     * Cadence frequency period: WEEKLY, MONTHLY, YEARLY, CUSTOM
-     */
     @Enumerated(EnumType.STRING)
-    @Column(name = "goal_cadence", length = 16)
+    @Column(name = "goal_cadence", length = 8)
     private GoalCadence goalCadence;
 
-    /**
-     * Cadence multiplier (e.g. 1 = every period, 3 = every 3 months / quarterly, 2 = every 2 years)
-     */
-    @Column(name = "goal_cadence_frequency")
-    private Integer goalCadenceFrequency;
+    @Column(name = "goal_cadence_frequency", nullable = false)
+    @Builder.Default
+    private Short goalCadenceFrequency = 1;
 
     /**
-     * Due day in month (1-31) or day of week (1 = Monday, 7 = Sunday for weekly target)
+     * 1-7 weekly (day of week: 1=Monday, 7=Sunday), 1-31 otherwise
      */
     @Column(name = "goal_day")
-    private Integer goalDay;
+    private Short goalDay;
 
     /**
-     * Deadline month for target with fixed completion date (e.g. 2026-12-01)
+     * Due month for custom targets (yyyy-MM-01)
      */
     @Column(name = "goal_target_month")
     private LocalDate goalTargetMonth;
 
-    /**
-     * Total amount needed in current month to stay on track (milliunits)
-     */
-    @Column(name = "goal_under_funded")
-    private Long goalUnderFunded;
-
-    /**
-     * Total remaining amount to reach target (milliunits)
-     */
-    @Column(name = "goal_overall_left")
-    private Long goalOverallLeft;
-
-    /**
-     * Whether target repeats after completion / deadline (e.g. yearly insurance repeats every year)
-     */
     @Column(name = "goal_repeat", nullable = false)
     @Builder.Default
     private boolean goalRepeat = true;
 
     /**
-     * Completion progress percentage (0 - 100)
+     * Month in which the target is snoozed (yyyy-MM-01)
      */
-    @Column(name = "goal_percentage_complete")
-    private Integer goalPercentageComplete;
+    @Column(name = "goal_snoozed_month")
+    private LocalDate goalSnoozedMonth;
 }

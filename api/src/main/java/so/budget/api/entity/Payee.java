@@ -2,7 +2,10 @@ package so.budget.api.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Getter
@@ -11,8 +14,11 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "payees")
-public class Payee extends BaseEntity {
+@Table(name = "payees", uniqueConstraints = {
+    @UniqueConstraint(name = "uq_payees_budget_id", columnNames = {"budget_id", "id"})
+})
+@EntityListeners(AuditingEntityListener.class)
+public class Payee {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -26,9 +32,7 @@ public class Payee extends BaseEntity {
     @Column(name = "name", nullable = false)
     private String name;
 
-    /**
-     * If this payee is an internal transfer payee, transferAccountId points to the related Account
-     */
-    @Column(name = "transfer_account_id")
-    private UUID transferAccountId;
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
 }

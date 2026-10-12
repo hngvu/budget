@@ -1,20 +1,32 @@
 package so.budget.api.entity;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum AccountType {
-    CHECKING,
-    SAVINGS,
-    CASH,
+    CASH("cash"),
+    CHECKING("checking"),
+    SAVINGS("savings");
 
-    CREDIT_CARD,
-    LINE_OF_CREDIT,
+    private final String value;
 
-    MORTGAGE,
-    AUTO_LOAN,
-    STUDENT_LOAN,
-    PERSONAL_LOAN,
-    MEDICAL_DEBT,
-    OTHER_DEBT,
+    AccountType(String value) {
+        this.value = value;
+    }
 
-    ASSET,
-    LIABILITY
+    @JsonValue
+    public String getValue() {
+        return value;
+    }
+
+    @JsonCreator
+    public static AccountType fromValue(String value) {
+        if (value == null) return null;
+        for (AccountType type : values()) {
+            if (type.value.equalsIgnoreCase(value) || type.name().equalsIgnoreCase(value)) {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("Unknown account type: " + value);
+    }
 }
