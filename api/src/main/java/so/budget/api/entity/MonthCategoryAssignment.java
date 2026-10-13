@@ -11,9 +11,9 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "month_category_budgets")
-@IdClass(MonthCategoryBudgetId.class)
-public class MonthCategoryBudget extends BaseEntity {
+@Table(name = "month_category_assignments")
+@IdClass(MonthCategoryAssignmentId.class)
+public class MonthCategoryAssignment extends BaseEntity {
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -25,13 +25,13 @@ public class MonthCategoryBudget extends BaseEntity {
     private LocalDate month;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "budget_id", nullable = false)
-    private Budget budget;
+    @JoinColumn(name = "plan_id", nullable = false)
+    private Plan plan;
 
     /**
      * Assigned amount in milliunits
      */
-    @Column(name = "budgeted", nullable = false)
+    @Column(name = "assigned", nullable = false)
     @Builder.Default
-    private Long budgeted = 0L;
+    private Long assigned = 0L;
 }

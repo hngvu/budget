@@ -13,7 +13,7 @@ import java.util.UUID;
 @Builder
 @Entity
 @Table(name = "transactions", uniqueConstraints = {
-    @UniqueConstraint(name = "uq_transactions_budget_id", columnNames = {"budget_id", "id"})
+    @UniqueConstraint(name = "uq_transactions_plan_id", columnNames = {"plan_id", "id"})
 })
 public class Transaction extends BaseEntity {
 
@@ -23,8 +23,8 @@ public class Transaction extends BaseEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "budget_id", nullable = false)
-    private Budget budget;
+    @JoinColumn(name = "plan_id", nullable = false)
+    private Plan plan;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "account_id", nullable = false)
@@ -34,7 +34,7 @@ public class Transaction extends BaseEntity {
     private LocalDate date;
 
     /**
-     * Amount in milliunits: (+) inflow, (-) outflow
+     * (+) Inflow, (-) Outflow in milliunits
      */
     @Column(name = "amount", nullable = false)
     private Long amount;
@@ -54,9 +54,8 @@ public class Transaction extends BaseEntity {
     @Builder.Default
     private boolean cleared = false;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "transfer_account_id")
-    private Account transferAccount;
+    @Column(name = "transfer_account_id")
+    private UUID transferAccountId;
 
     @Column(name = "transfer_transaction_id")
     private UUID transferTransactionId;

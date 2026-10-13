@@ -2,10 +2,7 @@ package so.budget.api.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -17,8 +14,7 @@ import java.util.UUID;
 @Builder
 @Entity
 @Table(name = "users")
-@EntityListeners(AuditingEntityListener.class)
-public class User {
+public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -35,15 +31,11 @@ public class User {
     private String displayName;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "plan", nullable = false, length = 10)
+    @Column(name = "subscription_tier", nullable = false, length = 10)
     @Builder.Default
-    private UserPlan plan = UserPlan.FREE;
-
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+    private SubscriptionTier subscriptionTier = SubscriptionTier.FREE;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<Budget> budgets = new ArrayList<>();
+    private List<Plan> plans = new ArrayList<>();
 }

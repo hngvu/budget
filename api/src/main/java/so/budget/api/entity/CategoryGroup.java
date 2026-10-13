@@ -2,10 +2,7 @@ package so.budget.api.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -17,10 +14,9 @@ import java.util.UUID;
 @Builder
 @Entity
 @Table(name = "category_groups", uniqueConstraints = {
-    @UniqueConstraint(name = "uq_category_groups_budget_id", columnNames = {"budget_id", "id"})
+    @UniqueConstraint(name = "uq_category_groups_plan_id", columnNames = {"plan_id", "id"})
 })
-@EntityListeners(AuditingEntityListener.class)
-public class CategoryGroup {
+public class CategoryGroup extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -28,8 +24,8 @@ public class CategoryGroup {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "budget_id", nullable = false)
-    private Budget budget;
+    @JoinColumn(name = "plan_id", nullable = false)
+    private Plan plan;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -41,10 +37,6 @@ public class CategoryGroup {
     @Column(name = "sort_order", nullable = false)
     @Builder.Default
     private Integer sortOrder = 0;
-
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
 
     @OneToMany(mappedBy = "categoryGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

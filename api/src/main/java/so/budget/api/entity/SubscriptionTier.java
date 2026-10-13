@@ -1,6 +1,6 @@
 package so.budget.api.entity;
 
-public enum UserPlan {
+public enum SubscriptionTier {
     FREE,
     PRO
 }

@@ -13,7 +13,7 @@ import java.util.UUID;
 @Builder
 @Entity
 @Table(name = "categories", uniqueConstraints = {
-    @UniqueConstraint(name = "uq_categories_budget_id", columnNames = {"budget_id", "id"})
+    @UniqueConstraint(name = "uq_categories_plan_id", columnNames = {"plan_id", "id"})
 })
 public class Category extends BaseEntity {
 
@@ -23,8 +23,8 @@ public class Category extends BaseEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "budget_id", nullable = false)
-    private Budget budget;
+    @JoinColumn(name = "plan_id", nullable = false)
+    private Plan plan;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_group_id", nullable = false)
@@ -50,44 +50,64 @@ public class Category extends BaseEntity {
     @Column(name = "system_kind", length = 32)
     private String systemKind;
 
-    // --- YNAB Targets 2.0 ---
+    // --- Official YNAB API Target Fields ---
+    /**
+     * Target type: TB (Target Balance), TBD (Target Balance by Date), MF (Monthly Funding), NEED (Plan Your Spending), DEBT
+     */
     @Enumerated(EnumType.STRING)
-    @Column(name = "goal_type", length = 16)
-    private GoalType goalType;
+    @Column(name = "target_type", length = 16)
+    private TargetType targetType;
 
     /**
      * Target amount in milliunits
      */
-    @Column(name = "goal_target")
-    private Long goalTarget;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "goal_cadence", length = 8)
-    private GoalCadence goalCadence;
-
-    @Column(name = "goal_cadence_frequency", nullable = false)
-    @Builder.Default
-    private Short goalCadenceFrequency = 1;
+    @Column(name = "target_amount")
+    private Long targetAmount;
 
     /**
-     * 1-7 weekly (day of week: 1=Monday, 7=Sunday), 1-31 otherwise
+     * Target due date in ISO format (yyyy-MM-dd)
      */
-    @Column(name = "goal_day")
-    private Short goalDay;
+    @Column(name = "target_date")
+    private LocalDate targetDate;
 
     /**
-     * Due month for custom targets (yyyy-MM-01)
+     * The creation month of the target (yyyy-MM-01)
      */
-    @Column(name = "goal_target_month")
-    private LocalDate goalTargetMonth;
-
-    @Column(name = "goal_repeat", nullable = false)
-    @Builder.Default
-    private boolean goalRepeat = true;
+    @Column(name = "target_creation_month")
+    private LocalDate targetCreationMonth;
 
     /**
-     * Month in which the target is snoozed (yyyy-MM-01)
+     * Cadence integer code according to YNAB API:
+     * 0 = no repeat, 1 = monthly, 2 = weekly, 13 = yearly (3-12, 14 = other recurrence periods)
      */
-    @Column(name = "goal_snoozed_month")
-    private LocalDate goalSnoozedMonth;
+    @Column(name = "target_cadence")
+    private Integer targetCadence;
+
+    /**
+     * Cadence frequency scale (used when targetCadence is 1 or 2, e.g., every 2 weeks/months)
+     */
+    @Column(name = "target_cadence_frequency")
+    private Integer targetCadenceFrequency;
+
+    /**
+     * Day of week or day of month:
+     * For weekly targets: 0 = Sunday, 1 = Monday, ..., 6 = Saturday.
+     * For monthly/yearly targets: 1 - 31 (day of month, 31 = last day of month).
+     */
+    @Column(name = "target_day")
+    private Integer targetDay;
+
+    /**
+     * Relevant for NEED targets:
+     * true = "Set aside another" (needs the whole amount, unspent funds don't discount next period)
+     * false = "Refill up to" (unspent funds from previous period reduce what is needed)
+     */
+    @Column(name = "target_needs_whole_amount")
+    private Boolean targetNeedsWholeAmount;
+
+    /**
+     * [YNAB Web / App Extension] Month in which the target is snoozed (yyyy-MM-01)
+     */
+    @Column(name = "target_snoozed_month")
+    private LocalDate targetSnoozedMonth;
 }
