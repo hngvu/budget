@@ -1,6 +1,6 @@
-# BudgetFlow API Specification & Implementation Plan
+# Budget API Specification & Implementation Plan
 
-> Tài liệu đặc tả kỹ thuật chi tiết các RESTful API endpoints, kiến trúc luồng dữ liệu (Data Flow), mô hình phân quyền và cách thức xử lý nghiệp vụ tại tầng Service cho hệ thống BudgetFlow (YNAB-style Zero-based Budgeting).
+> Tài liệu đặc tả kỹ thuật chi tiết các RESTful API endpoints, kiến trúc luồng dữ liệu (Data Flow), mô hình phân quyền và cách thức xử lý nghiệp vụ tại tầng Service cho hệ thống Budget (YNAB-style Zero-based Budgeting).
 
 ---
 
@@ -32,19 +32,37 @@
   * Kiểm tra nghiệp vụ (Số dư tài khoản khi đóng, kiểm tra target, tính toán Underfunded / Auto-Assign).
   * Xử lý xác thực, cấp token, mã hóa mật khẩu, kiểm tra giới hạn gói thuê bao (FREE vs PRO).
 
+### 1.5. Thiết kế DTO và Service Layer (Pure Record & Builder, No Interface Soup)
+* **DTO:** Toàn bộ Request/Response DTO sử dụng Java `record` bất biến (immutable), kết hợp Lombok `@Builder` thuần túy:
+  * Không dùng MapStruct (tránh code generation ngầm và lỗi xung đột annotation processor).
+  * Không dùng static method trong Record (giữ DTO hoàn toàn độc lập, tách biệt với Entity).
+  * Việc ánh xạ (mapping) thực hiện trực tiếp bằng Builder thuần tại tầng Service:
+    ```java
+    @Builder
+    public record AccountResponse(UUID id, String name, AccountType type, boolean closed, String note) {}
+
+    // Tại Service:
+    return AccountResponse.builder()
+        .id(account.getId())
+        .name(account.getName())
+        .type(account.getType())
+        .closed(account.isClosed())
+        .note(account.getNote())
+        .build();
+    ```
+* **Service:** Khai báo class trực tiếp (`@Service`), không tạo cặp `Interface` + `Impl` 1-1 máy móc. Chỉ dùng interface khi có từ 2 implementations trở lên (như Strategy pattern).
+
 ---
 
 ## 2. Chuẩn Định Dạng Dữ Liệu & Xử Lý Lỗi
 
-### 2.1. Phản hồi thành công (Standard Success Envelope)
-```json
-{
-  "success": true,
-  "data": { ... },
-  "message": "Thao tác thành công",
-  "timestamp": "2026-10-13T21:40:00Z"
-}
-```
+### 2.1. Phản hồi thành công (Clean / Direct Response)
+* **Không dùng wrapper thừa thãi:** Không bọc `{ success, message, timestamp, data }` cho các request thành công.
+* Trả trực tiếp dữ liệu (Direct Resource Payload):
+  * **Xem chi tiết / Tạo mới:** Trả thẳng object (`200 OK` hoặc `201 Created`).
+  * **Danh sách:** Trả thẳng mảng JSON `[...]` (hoặc object `{ "accounts": [...], "total": 10 }` nếu phân trang).
+  * **Xóa / Update không trả body:** Trả về `204 No Content`.
+
 
 ### 2.2. Phản hồi lỗi chuẩn RFC 7807 (ProblemDetail)
 ```json

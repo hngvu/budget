@@ -1,12 +1,13 @@
 server:
   port: ${PORT:8080}
-  error:
-    include-message: always
-    include-binding-errors: always
 
 spring:
   application:
     name: budget-api
+
+  mvc:
+    problemdetails:
+      enabled: true
 
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:budget}}
@@ -21,6 +22,7 @@ spring:
       max-lifetime: 1200000
 
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: validate
     open-in-view: false
@@ -38,6 +40,10 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     baseline-version: 0
+  web:
+    error:
+      include-message: always
+      include-binding-errors: always
 
 # Swagger / OpenAPI documentation
 springdoc:
@@ -52,6 +58,7 @@ springdoc:
 app:
   jwt:
     # Secret key dạng base64 / hex (tối thiểu 256-bit cho HMAC-SHA256)
-    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
-    expiration-ms: ${JWT_EXPIRATION_MS:86400000} # 24 giờ
-    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000} # 7 ngày
+    secret: ${JWT_SECRET:a22342078709628c33731ed76959bbdf7d98f382b5ac8d16b32393bb937ca090}
+    expiration-ms: ${JWT_EXPIRATION_MS:2592000000} # 30 ngày (30 * 24 * 3600 * 1000)
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
